@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import requests
 import io
+import zipfile  # Import the zipfile module
 
 def download_pdf(url):
     try:
