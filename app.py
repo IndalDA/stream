@@ -17,7 +17,7 @@ def download_pdf(url):
         return None
 
 def main():
-    st.title("PDF Downloader from Excel")
+    st.title("Spare care PDF Downloader")
 
     # File uploader for Excel file
     uploaded_file = st.file_uploader("Choose an Excel file", type='xlsx')
