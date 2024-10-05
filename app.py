@@ -1,22 +1,19 @@
-
 import streamlit as st
 import pandas as pd
 import requests
-import os
+import io
 
-def download_pdf(url, file_path):
+def download_pdf(url):
     try:
-        with requests.get(url) as r:
-            r.raise_for_status()  # Check if the request was successful
-            with open(file_path, 'wb') as f:
-                f.write(r.content)  # Write the content to a file
-        return True
+        r = requests.get(url)
+        r.raise_for_status()  # Check if the request was successful
+        return r.content  # Return the content of the PDF file
     except requests.HTTPError as e:
         st.error(f'HTTP error occurred while downloading {url}: {e}')  # Display HTTP error
-        return False
+        return None
     except Exception as e:
         st.error(f'An error occurred: {e}')  # Display any other errors
-        return False
+        return None
 
 def main():
     st.title("PDF Downloader from Excel")
@@ -28,8 +25,8 @@ def main():
         df = pd.read_excel(uploaded_file)
 
         if 'InvoiceCopy' in df.columns and 'Invoice No.(s)' in df.columns:
-            downloads_folder = os.path.join(os.path.expanduser('~'), 'Downloads')
             download_count = 0
+            pdf_files = {}  # Dictionary to store PDF content
 
             # Iterate over the rows of the DataFrame
             for index, row in df.iterrows():
@@ -37,13 +34,28 @@ def main():
                 invoicenumber = row['Invoice No.(s)']
 
                 manifest_pdf = f'https://scope.sparecare.in/Upload/InvoiceCopySPM/{invcopy}'
-                file_path = os.path.join(downloads_folder, f'{invoicenumber}_{invcopy}.pdf')  # Ensure .pdf extension
+                pdf_content = download_pdf(manifest_pdf)
 
-                if download_pdf(manifest_pdf, file_path):
+                if pdf_content:
+                    pdf_files[f'{invoicenumber}_{invcopy}.pdf'] = pdf_content
                     download_count += 1
 
-            st.success(f'Successfully downloaded {download_count} PDFs to your Downloads folder.')
+            if download_count > 0:
+                # Create a ZIP file with all the PDFs
+                zip_buffer = io.BytesIO()
+                with st.spinner('Preparing download...'):
+                    with zipfile.ZipFile(zip_buffer, 'w') as zip_file:
+                        for filename, content in pdf_files.items():
+                            zip_file.writestr(filename, content)
 
+                # Provide download link for the ZIP file
+                st.success(f'Successfully downloaded {download_count} PDFs.')
+                st.download_button(
+                    label="Download all PDFs as ZIP",
+                    data=zip_buffer.getvalue(),
+                    file_name="pdfs.zip",
+                    mime="application/zip"
+                )
         else:
             st.error("The uploaded Excel file must contain 'InvoiceCopy' and 'Invoice No.(s)' columns.")
 
