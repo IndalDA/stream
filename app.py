@@ -69,17 +69,25 @@ if st.button("Click here To Send Lr Alter Msg"):
     import pyperclip as pc
     from selenium import webdriver
     from datetime import datetime
+    from selenium.webdriver.chrome.options import Options
     from selenium.webdriver.common.by import By
     from selenium.webdriver.support.ui import WebDriverWait
     from selenium.webdriver.support import expected_conditions as EC
     from selenium.webdriver.common.keys import Keys
     from selenium.webdriver.common.action_chains import ActionChains
+
+    chrome_options = Options()
+    chrome_options.add_argument('--headless')
+    chrome_options.add_argument('--disable-gpu')
+    chrome_options.add_argument('--no-sandbox')
+    chrome_options.add_argument('--disable-dev-shm-usage')
+    driver = webdriver.Chrome(options=chrome_options)
     
-    driver = webdriver.Chrome()
-    driver.maximize_window()
-    wait = WebDriverWait(driver,15)
+    # driver = webdriver.Chrome()
+    # driver.maximize_window()
+    # wait = WebDriverWait(driver,15)
     driver.get('https://web.whatsapp.com/')
-    time.sleep(120)
+    time.sleep(30)
     
     conn = pyodbc.connect(
         r'DRIVER={ODBC Driver 17 for SQL Server};'
