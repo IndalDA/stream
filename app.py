@@ -69,29 +69,32 @@ if st.button("Click here To Send Lr Alter Msg"):
     import pyperclip as pc
     from selenium import webdriver
     from datetime import datetime
-    from webdriver_manager.chrome import ChromeDriverManager
     from selenium.webdriver.chrome.options import Options
     from selenium.webdriver.common.by import By
     from selenium.webdriver.support.ui import WebDriverWait
     from selenium.webdriver.support import expected_conditions as EC
     from selenium.webdriver.common.keys import Keys
     from selenium.webdriver.common.action_chains import ActionChains
-    
-    chrome_options = Options()
-    #chrome_options.add_argument('--headless')
-    chrome_options.add_argument('--disable-gpu')
-    chrome_options.add_argument('--no-sandbox')
-    chrome_options.add_argument('--disable-dev-shm-usage')
+    from webdriver_manager.chrome import ChromeDriverManager 
     
     # Use ChromeDriverManager to automatically manage the driver version
+    chrome_options = Options()
+    chrome_options.add_argument('--headless')  # Headless mode
+    chrome_options.add_argument('--disable-gpu')  # Disable GPU hardware acceleration
+    chrome_options.add_argument('--no-sandbox')  # Disable sandboxing
+    chrome_options.add_argument('--disable-dev-shm-usage')  # Overcome limited resource issues
+    
+    # Automatically download and use the correct ChromeDriver version
     driver = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
+
+# driver = webdriver.Chrome()  # Uncomment for non-headless mode (for testing purposes)
+# driver.maximize_window()
     
-    
-    driver = webdriver.Chrome()
-    driver.maximize_window()
-    wait = WebDriverWait(driver,15)
-    driver.get('https://web.whatsapp.com/')
-    time.sleep(30)
+    # driver = webdriver.Chrome()
+    # driver.maximize_window()
+    # wait = WebDriverWait(driver,15)
+    # driver.get('https://web.whatsapp.com/')
+    # time.sleep(30)
     
     conn = pyodbc.connect(
         r'DRIVER={ODBC Driver 17 for SQL Server};'
