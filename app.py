@@ -86,7 +86,7 @@ if st.button("Click here To Send Lr Alter Msg"):
     if st.button("Start WhatsApp Automation"):
         # Set up Chrome options for headless mode
         chrome_options = Options()
-        chrome_options.add_argument('--headless')  # Enable headless mode
+        #chrome_options.add_argument('--headless')  # Enable headless mode
         chrome_options.add_argument('--disable-gpu')
         chrome_options.add_argument('--no-sandbox')
         chrome_options.add_argument('--disable-dev-shm-usage')
