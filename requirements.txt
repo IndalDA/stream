@@ -6,4 +6,5 @@ pyodbc
 selenium
 pyperclip
 datetime
+ChromeDriverManager()
 webdriver-manager
