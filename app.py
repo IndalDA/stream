@@ -85,7 +85,7 @@ if st.button("Click here To Send Lr Alter Msg"):
     chrome_options.add_argument('--disable-dev-shm-usage')  # Overcome limited resource issues
     
     # Automatically download and use the correct ChromeDriver version
-    #driver = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
+    driver = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
 
    # driver = webdriver.Chrome()  # Uncomment for non-headless mode (for testing purposes)
    # driver.maximize_window()
