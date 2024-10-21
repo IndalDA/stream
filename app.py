@@ -84,121 +84,130 @@ if st.button("Click here To Send Lr Alter Msg"):
     
     # Button to trigger the automation
     if st.button("Start WhatsApp Automation"):
-        # Set up Chrome options for headless mode
+        # Set up Chrome options
         chrome_options = Options()
-        #chrome_options.add_argument('--headless')  # Enable headless mode
+        # Uncomment the following line if you need headless mode (not recommended in this case)
+        # chrome_options.add_argument('--headless')
         chrome_options.add_argument('--disable-gpu')
         chrome_options.add_argument('--no-sandbox')
         chrome_options.add_argument('--disable-dev-shm-usage')
     
         # Initialize the Chrome WebDriver
-        driver = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
+        try:
+            driver = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
+            driver.maximize_window()
+            wait = WebDriverWait(driver, 15)
     
-        driver.maximize_window()
-        wait = WebDriverWait(driver, 15)
+            # Open WhatsApp Web
+            driver.get('https://web.whatsapp.com/')
+            st.write("Please scan the QR code to log in to WhatsApp Web.")
+            time.sleep(30)  # Wait for user to scan the QR code
     
-        # Open WhatsApp Web
-        driver.get('https://web.whatsapp.com/')
-        st.write("Please scan the QR code to log in to WhatsApp Web.")
-        time.sleep(30)  # Wait for user to scan the QR code
-    
-    # Database connection
-    conn = pyodbc.connect(
+            # Database connection
+    	conn = pyodbc.connect(
             r'DRIVER={ODBC Driver 17 for SQL Server};'
             r'SERVER=4.240.64.61,1232;'
             r'DATABASE=z_scope;'
             r'UID=Utkrishtsa;'
             r'PWD=AsknSDV*3h9*RFhkR9j73;')
-    cursor = conn.cursor() 
-    # Execute stored procedure
-    cursor.execute('Uad_Gainer_Lr_Alter_Msg_Automation_Details_sp')
-    conn.commit()
+    	cursor = conn.cursor()
+    
+            # Execute stored procedure
+            cursor.execute('Uad_Gainer_Lr_Alter_Msg_Automation_Details_sp')
+            conn.commit()
+    
+            # Fetch SQL data
+            sql_data = pd.read_sql_query('''
+                SELECT *
+                FROM Uad_Gainer_Lr_Alter_Msg_Automation_Details
+                WHERE msg_status IS NULL 
+                  AND CAST(ManifestDate AS date) = CAST(GETDATE() AS date)
+                  AND FORMAT(GETDATE(), 'hh:mm') <= '12:15'
+            ''', conn)
+    
+            # Iterate over the SQL data and send WhatsApp messages
+            for Do, brand, dealer, location, buyerdetails, invoiceNo, InvoiceAmount, lsp, lrn, box, Group, conct, spm in zip(
+                sql_data['DispatchOrderNo'],
+                sql_data['Brand'],
+                sql_data['SellingDealer'],
+                sql_data['SellingLocation'],
+                sql_data['BuyingDealer_Location'],
+                sql_data['InvoiceNumber'],
+                sql_data['InvoiceAmount'],
+                sql_data['finallsp'],
+                sql_data['LRNumber'],
+                sql_data['Boxes'],
+                sql_data['Whatsapp_SPM_Name'],
+                sql_data['Contact_no'],
+                sql_data['SPM_Name']
+            ):
+                st.write(f"Sending message to contact: {conct}")
+                dt = datetime.now().strftime('%d-%b-%y on %H:%M')
+                status = f"Msg sent on: {dt}"
+    
+                # Search for the contact
+                new_chat = "//div[@title='New chat']"
+                WebDriverWait(driver, 30).until(EC.element_to_be_clickable((By.XPATH, new_chat))).click()
+    
+                new_search = "//div[@class='_ai07 _ai01 _akmh']//p[@class='selectable-text copyable-text x15bjb6t x1n2onr6']"
+                search_box = WebDriverWait(driver, 30).until(EC.element_to_be_clickable((By.XPATH, new_search)))
+                search_box.send_keys(Keys.CONTROL + "a")
+                search_box.send_keys(Keys.BACKSPACE)
+    
+                group_name = conct
+                search_box.send_keys(group_name)
+                search_box.send_keys(Keys.ENTER)
+    
+                # Prepare and send the message
+                seller = f'Seller - {dealer}_{location}'
+                message = f'''*Dear Mr. {spm},*
+                {seller}
+    
+                Please note LR is generated for the following order:
+    
+                *Buyer  : {buyerdetails}*
+                *Invoice No :  {invoiceNo}*
+                *Invoice Value : {InvoiceAmount}*
+                *No of Box - {box}*
+                *LR Number : {lrn}*
+                *Courier Name : {lsp}*
+    
+                Kindly take printout of packing slip from Scope portal & paste on boxes.
+                Thanks & Regards, Team Gainer
+                '''
+    
+                pc.copy(message)
+    
+                # Paste and send the message
+                message_box_xpath = '//div[@aria-placeholder="Type a message"]'
+                message_box = wait.until(EC.visibility_of_element_located((By.XPATH, message_box_xpath)))
+                message_box.click()
+    
+                ActionChains(driver).key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
+                ActionChains(driver).send_keys(Keys.RETURN).perform()
+    
+                time.sleep(2)
+    
+                # Update the database with message status
+                update_query = f"UPDATE Uad_Gainer_Lr_Alter_Msg_Automation_Details SET MSG_STATUS='{status}' WHERE DispatchOrderNo={Do}"
+                cursor.execute(update_query)
+                conn.commit()
+    
+                st.success(f"Message sent to {group_name} successfully.")
+    
+            # Close the database connection
+            cursor.close()
+            conn.close()
+    
+        except Exception as e:
+            st.error(f"An error occurred: {e}")
+    
+        finally:
+            # Always ensure the browser is closed
+            driver.quit()
+    
+    st.write("WhatsApp Automation complete.")
 
-    # Fetch SQL data
-    sql_data = pd.read_sql_query('''
-        SELECT *
-        FROM Uad_Gainer_Lr_Alter_Msg_Automation_Details
-        WHERE msg_status IS NULL 
-          AND CAST(ManifestDate AS date) = CAST(GETDATE() AS date)
-          AND FORMAT(GETDATE(), 'hh:mm') <= '12:15'
-    ''', conn)
-
-    # Iterate over the SQL data and send WhatsApp messages
-    for Do, brand, dealer, location, buyerdetails, invoiceNo, InvoiceAmount, lsp, lrn, box, Group, conct, spm in zip(
-        sql_data['DispatchOrderNo'],
-        sql_data['Brand'],
-        sql_data['SellingDealer'],
-        sql_data['SellingLocation'],
-        sql_data['BuyingDealer_Location'],
-        sql_data['InvoiceNumber'],
-        sql_data['InvoiceAmount'],
-        sql_data['finallsp'],
-        sql_data['LRNumber'],
-        sql_data['Boxes'],
-        sql_data['Whatsapp_SPM_Name'],
-        sql_data['Contact_no'],
-        sql_data['SPM_Name']
-    ):
-        st.write(f"Sending message to contact: {conct}")
-        dt = datetime.now().strftime('%d-%b-%y on %H:%M')
-        status = f"Msg sent on: {dt}"
-
-        # Search for the contact
-        new_chat = "//div[@title='New chat']"
-        WebDriverWait(driver, 30).until(EC.element_to_be_clickable((By.XPATH, new_chat))).click()
-
-        new_search = "//div[@class='_ai07 _ai01 _akmh']//p[@class='selectable-text copyable-text x15bjb6t x1n2onr6']"
-        search_box = WebDriverWait(driver, 30).until(EC.element_to_be_clickable((By.XPATH, new_search)))
-        search_box.send_keys(Keys.CONTROL + "a")
-        search_box.send_keys(Keys.BACKSPACE)
-
-        group_name = conct
-        search_box.send_keys(group_name)
-        search_box.send_keys(Keys.ENTER)
-
-        # Prepare and send the message
-        seller = f'Seller - {dealer}_{location}'
-        message = f'''*Dear Mr. {spm},*
-        {seller}
-
-        Please note LR is generated for the following order:
-
-        *Buyer  : {buyerdetails}*
-        *Invoice No :  {invoiceNo}*
-        *Invoice Value : {InvoiceAmount}*
-        *No of Box - {box}*
-        *LR Number : {lrn}*
-        *Courier Name : {lsp}*
-
-        Kindly take printout of packing slip from Scope portal & paste on boxes.
-        Thanks & Regards, Team Gainer
-        '''
-
-        pc.copy(message)
-
-        # Paste and send the message
-        message_box_xpath = '//div[@aria-placeholder="Type a message"]'
-        message_box = wait.until(EC.visibility_of_element_located((By.XPATH, message_box_xpath)))
-        message_box.click()
-
-        ActionChains(driver).key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
-        ActionChains(driver).send_keys(Keys.RETURN).perform()
-
-        time.sleep(2)
-
-        # Update the database with message status
-        update_query = f"UPDATE Uad_Gainer_Lr_Alter_Msg_Automation_Details SET MSG_STATUS='{status}' WHERE DispatchOrderNo={Do}"
-        cursor.execute(update_query)
-        conn.commit()
-
-        st.success(f"Message sent to {group_name} successfully.")
-
-    # Close the database and browser
-    cursor.close()
-    conn.close()
-    driver.quit()
-
-st.write("WhatsApp Automation complete.")
 
 
 if __name__ == '__main__':
