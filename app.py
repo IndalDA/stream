@@ -5,6 +5,7 @@ import io
 import zipfile
 import yt_dlp
 
+# Function to download PDF files
 def download_pdf(url):
     try:
         r = requests.get(url)
@@ -17,6 +18,7 @@ def download_pdf(url):
         st.error(f'An error occurred: {e}')  # Display any other errors
         return None
 
+# Function for PDF downloader
 def pdf_downloader():
     st.title("Spare Care PDF Downloader")
 
@@ -61,11 +63,11 @@ def pdf_downloader():
         else:
             st.error("The uploaded Excel file must contain 'InvoiceCopy' and 'Invoice No.(s)' columns.")
 
+# Function to download YouTube playlist
 def download_playlist(playlist_link):
     ydl_opts = {
-        'format': 'best',  # Download the best quality available
-        'outtmpl': '%(title)s.%(ext)s',  # Save with the video title as the filename
-        'cookiefile': 'cookies.txt',  # Add your cookies file here
+        'format': 'best',  # Download best quality available
+        'outtmpl': '%(title)s.%(id)s.%(ext)s',  # Save with video title and ID to avoid issues
         'noplaylist': False,  # Enable playlist downloading
     }
 
@@ -76,18 +78,6 @@ def download_playlist(playlist_link):
     except yt_dlp.utils.DownloadError as e:
         st.error(f"An error occurred: {e}. Please check if the video requires login or is publicly accessible.")
 
-def youtube_playlist_downloader():
-    st.title("YouTube Playlist Downloader")
-    
-    playlist_link = st.text_input("Enter the YouTube playlist URL:")
-
-    if st.button("Download Playlist"):
-        if playlist_link:
-            st.info(f"Downloading playlist: {playlist_link}")
-            download_playlist(playlist_link)
-        else:
-            st.error("Please enter a valid playlist URL.")
-
 # Main application
 def main():
     st.sidebar.title("Menu")
@@ -96,7 +86,15 @@ def main():
     if option == "PDF Downloader":
         pdf_downloader()
     elif option == "YouTube Playlist Downloader":
-        youtube_playlist_downloader()
+        st.title("YouTube Playlist Downloader")
+        playlist_link = st.text_input("Enter the YouTube playlist URL:")
+
+        if st.button("Download Playlist"):
+            if playlist_link:
+                st.info(f"Downloading playlist: {playlist_link}")
+                download_playlist(playlist_link)
+            else:
+                st.error("Please enter a valid playlist URL.")
 
 if __name__ == '__main__':
     main()
