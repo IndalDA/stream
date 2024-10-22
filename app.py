@@ -3,7 +3,9 @@ import pandas as pd
 import requests
 import io
 import zipfile
+import yt_dlp
 
+# Function to download a PDF from a given URL
 def download_pdf(url):
     try:
         r = requests.get(url)
@@ -16,8 +18,9 @@ def download_pdf(url):
         st.error(f'An error occurred: {e}')  # Display any other errors
         return None
 
+# PDF downloader function
 def pdf_downloader():
-    st.title("Spare care PDF Downloader")
+    st.title("Spare Care PDF Downloader")
 
     # File uploader for Excel file
     uploaded_file = st.file_uploader("Choose an Excel file", type='xlsx')
@@ -25,6 +28,7 @@ def pdf_downloader():
     if uploaded_file is not None:
         df = pd.read_excel(uploaded_file)
 
+        # Check for required columns
         if 'InvoiceCopy' in df.columns and 'Invoice No.(s)' in df.columns:
             download_count = 0
             pdf_files = {}  # Dictionary to store PDF content
@@ -60,26 +64,32 @@ def pdf_downloader():
         else:
             st.error("The uploaded Excel file must contain 'InvoiceCopy' and 'Invoice No.(s)' columns.")
 
+# YouTube playlist downloader function
 def youtube_playlist_downloader():
     st.title("YouTube Playlist Downloader")
-    
-    import yt_dlp
 
+    # Function to download a playlist
     def download_playlist(playlist_link):
         ydl_opts = {
             'format': 'bestvideo[height<=1080]+bestaudio/best',  # Download highest quality video up to 1080p
             'outtmpl': '%(title)s.%(ext)s',  # Save with the video title as the filename
             'merge_output_format': 'mp4',  # Merge video and audio to mp4
-            'noplaylist': False,  # Enable playlist downloading
+            'noplaylist': True,  # Only download single videos, not entire playlists
             'postprocessors': [{
                 'key': 'FFmpegVideoConvertor',  # Convert to mp4 after download
                 'preferedformat': 'mp4',
             }],
         }
-    
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([playlist_link])
 
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([playlist_link])
+        except yt_dlp.utils.DownloadError as e:
+            st.error(f"Download error: {e}. This may be caused by a missing 'ffmpeg'.")
+        except Exception as e:
+            st.error(f"An error occurred: {e}")
+
+    # User input for playlist link
     playlist_link = st.text_input("Enter the YouTube playlist URL:")
 
     if st.button("Download Playlist"):
