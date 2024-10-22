@@ -16,7 +16,7 @@ def download_pdf(url):
         st.error(f'An error occurred: {e}')  # Display any other errors
         return None
 
-def main():
+def pdf_downloader():
     st.title("Spare care PDF Downloader")
 
     # File uploader for Excel file
@@ -60,7 +60,9 @@ def main():
         else:
             st.error("The uploaded Excel file must contain 'InvoiceCopy' and 'Invoice No.(s)' columns.")
 
-if st.button("Run"):
+def youtube_playlist_downloader():
+    st.title("YouTube Playlist Downloader")
+    
     import yt_dlp
 
     def download_playlist(playlist_link):
@@ -76,14 +78,26 @@ if st.button("Run"):
     
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([playlist_link])
-    
-    if __name__ == "__main__":
-        playlist_link = input("Enter the YouTube playlist URL: ")
-        download_playlist(playlist_link)
 
+    playlist_link = st.text_input("Enter the YouTube playlist URL:")
 
+    if st.button("Download Playlist"):
+        if playlist_link:
+            st.info(f"Downloading playlist: {playlist_link}")
+            download_playlist(playlist_link)
+            st.success("Download complete.")
+        else:
+            st.error("Please enter a valid playlist URL.")
 
+# Main application
+def main():
+    st.sidebar.title("Menu")
+    option = st.sidebar.selectbox("Choose an option", ["PDF Downloader", "YouTube Playlist Downloader"])
 
+    if option == "PDF Downloader":
+        pdf_downloader()
+    elif option == "YouTube Playlist Downloader":
+        youtube_playlist_downloader()
 
 if __name__ == '__main__':
     main()
