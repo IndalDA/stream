@@ -60,5 +60,30 @@ def main():
         else:
             st.error("The uploaded Excel file must contain 'InvoiceCopy' and 'Invoice No.(s)' columns.")
 
+if st.button("Run"):
+    import yt_dlp
+
+    def download_playlist(playlist_link):
+        ydl_opts = {
+            'format': 'best',
+            'outtmpl': '%(title)s.%(ext)s',  # Save with the video title as the filename
+            'postprocessors': [{
+                'key': 'FFmpegVideoConvertor',  # Convert to mp4 after download
+                'preferedformat': 'mp4',
+            }],
+            'noplaylist': False,  # Enable playlist downloading
+        }
+    
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([playlist_link])
+    
+    if __name__ == "__main__":
+        playlist_link = input("Enter the YouTube playlist URL: ")
+        download_playlist(playlist_link)
+
+
+
+
+
 if __name__ == '__main__':
     main()
