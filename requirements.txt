@@ -5,5 +5,7 @@ openpyxl
 pyodbc
 selenium
 pyperclip
+datetime
 webdriver-manager
 yt-dlp
+ffmpeg
