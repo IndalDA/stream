@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import requests
 import io
-import zipfile  # Import the zipfile module
+import zipfile
 
 def download_pdf(url):
     try:
@@ -67,13 +67,14 @@ def youtube_playlist_downloader():
 
     def download_playlist(playlist_link):
         ydl_opts = {
-            'format': 'best',
+            'format': 'bestvideo[height<=1080]+bestaudio/best',  # Download highest quality video up to 1080p
             'outtmpl': '%(title)s.%(ext)s',  # Save with the video title as the filename
+            'merge_output_format': 'mp4',  # Merge video and audio to mp4
+            'noplaylist': False,  # Enable playlist downloading
             'postprocessors': [{
                 'key': 'FFmpegVideoConvertor',  # Convert to mp4 after download
                 'preferedformat': 'mp4',
             }],
-            'noplaylist': False,  # Enable playlist downloading
         }
     
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
