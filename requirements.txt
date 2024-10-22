@@ -7,3 +7,4 @@ selenium
 pyperclip
 datetime
 webdriver-manager
+yt-dlp
