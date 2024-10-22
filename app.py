@@ -66,7 +66,7 @@ def youtube_playlist_downloader():
     
     def download_playlist(playlist_link):
         ydl_opts = {
-            'format': 'bestvideo[height<=1080]',  # Download the best video up to 1080p
+            'format': 'best',  # Download the best quality available
             'outtmpl': '%(title)s.%(ext)s',  # Save with the video title as the filename
             'noplaylist': False,  # Enable playlist downloading
         }
